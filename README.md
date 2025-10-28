@@ -1,7 +1,7 @@
 How to use
 - npm run dev
 - for AI features configure OPENAI_API_KEY env variable
-
+- should default open on http://localhost:3000
 
 
 Misc notes
