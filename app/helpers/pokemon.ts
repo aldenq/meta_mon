@@ -26,7 +26,7 @@ export class PokeNodePokemon {
   private dirty:boolean  = true;
 
   public constructor() {}
-
+ 
   /**
    * Factory to create an instance and load all the data from the API by id or name.
    */
@@ -87,7 +87,7 @@ export class PokeNodePokemon {
 
   public randomizeTTL(): void {
     const min = 1000 * 60 * 60 * 12; // 12 hours
-    const max = 1000 * 60 * 60 * 24*7; // 24 hours (assumption is that updates are very slow)
+    const max = 1000 * 60 * 60 * 24*7; // 7 days (assumption is that updates are very slow)
     this.TTL = Math.random() * (max - min) + min;
     this.last_access = Date.now();
   }
