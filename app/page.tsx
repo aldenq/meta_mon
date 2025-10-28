@@ -11,11 +11,10 @@ export default function PokedexPage() {
         <h1 className="text-3xl font-bold mb-6 text-gray-800">Pokédex Explorer</h1>
 
         {/* Main Pokedex UI */}
-        <SearchablePokedex initialCount={50} />
+        <SearchablePokedex />
 
         {/* Footer */}
         <footer className="mt-12 text-center text-gray-500 text-sm">
-          Data © Pokémon Company & PokeAPI — Interface by MakerSpace Labs.
         </footer>
       </div>
     </div>

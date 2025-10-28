@@ -1,28 +1,45 @@
 'use client';
 
-import { dex, GlobalPokedex } from '@/app/helpers/pokedex';
+import { dexClient } from '@/app/helpers/pokedex.client';
 import { PokeNodePokemon } from '@/app/helpers/pokemon';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-export function usePokedex(initialAutoHydrate?: { bound: number; concurrency?: number }) {
-    const [loaded, setLoaded] = useState(() => dex.size() > 0);
-    const [progress, setProgress] = useState(0);
-    
-    // useEffect(() => {
-    //     let cancelled = false;
-    //     if (!loaded && initialAutoHydrate) {
-    //       const { bound, concurrency = 10 } = initialAutoHydrate;
-    //       dex.autoHydrate(bound, concurrency)
-    //          .finally(() => !cancelled && setLoaded(true));
-    //     }
-    //     return () => { cancelled = true; };
-    //   }, [loaded, initialAutoHydrate]);
-      
+export function usePokedex(autoLoad = true) {
+    const [loaded, setLoaded] = useState(() => dexClient.size() > 0);
+    const [error, setError] = useState<string | null>(null);
   
-    const all = useMemo(() => dex.all(), [loaded, progress]);
-    const search = (q: string) => dex.search(q);
-    // const loadMore = async (toId: number, step = 50) => { /* ... */ };
+    useEffect(() => {
+      let cancelled = false;
   
-    return { dex, loaded, progress, all, search };
+      async function hydrate() {
+        if (loaded || !autoLoad) return;
+        try {
+          await dexClient.loadAll();
+          if (!cancelled) setLoaded(true);
+        } catch (err: any) {
+          if (!cancelled) setError(err.message ?? 'Unknown error');
+        }
+      }
+  
+      hydrate();
+      return () => {
+        cancelled = true;
+      };
+    }, [autoLoad, loaded]);
+  
+    const all = useMemo(() => dexClient.all(), [loaded]);
+    const search = useMemo(
+      () => (q: string): PokeNodePokemon[] => dexClient.search(q),
+      []
+    );
+  
+    return {
+      dexClient,
+      loaded,
+      all,
+      search,
+      size: dexClient.size(),
+      error,
+    };
   }
   

@@ -9,7 +9,8 @@ interface PokemonCardProps {
 }
 
 /**
- * Displays a detailed Pokémon card using data from PokeNodePokemon.
+ * Rendered Pokemon Card
+ * 
  */
 export function PokemonCard({ pokemon }: PokemonCardProps) {
   if (!pokemon) return null;
@@ -21,8 +22,14 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
           <Image
             src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`}
             alt={pokemon.name || 'pokemon'}
-            width={200}
-            height={200}
+            width={256} 
+            height={256}
+            sizes="
+                (max-width: 640px) 50vw,    /* 2 cols */
+                (max-width: 768px) 33vw,    /* 3 cols */
+                (max-width: 1024px) 25vw,   /* 4 cols */
+                16.67vw                     /* 6 cols */
+            "
             className="mx-auto drop-shadow-md"
           />
         )}
@@ -54,7 +61,7 @@ export function PokemonCard({ pokemon }: PokemonCardProps) {
         </div>
         <div className="col-span-2">
           <strong>Abilities:</strong>{' '}
-          {pokemon.abilities.map((a) => (
+          {[...new Set(pokemon.abilities)].map((a) => (
             <span
               key={a}
               className="inline-block bg-sky-100 text-sky-700 px-2 py-0.5 rounded text-xs mr-1 capitalize"

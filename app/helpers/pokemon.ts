@@ -18,15 +18,21 @@ export class PokeNodePokemon {
   /** A list of base stats: name → value */
   public baseStats: Record<string, number> = {};
 
+
+
+
+  private last_access: number = Date.now(); // timestamp in ms
+  private TTL: number = 0;
+  private dirty:boolean  = true;
+
   public constructor() {}
 
   /**
    * Factory to create an instance and load all the data from the API by id or name.
-   * @param idOrName The Pokémon id (number) or name (string) to fetch.
    */
   public static async create(idOrName: number | string): Promise<PokeNodePokemon> {
     const instance = new PokeNodePokemon();
-    const data: Pokemon = await PokeNodePokemon.client.getPokemonByName(idOrName);
+    const data: Pokemon = await PokeNodePokemon.client.getPokemonByName(idOrName.toString());
     instance.id = data.id;
     instance.name = data.name;
     instance.height = data.height;
@@ -42,8 +48,9 @@ export class PokeNodePokemon {
     for (const stat of data.stats) {
       instance.baseStats[stat.stat.name] = stat.base_stat;
     }
-
+    instance.randomizeTTL()
     return instance;
+    
   }
 
   /**
@@ -54,7 +61,7 @@ export class PokeNodePokemon {
       throw new Error('Cannot reload because id and name are both null');
     }
     const idOrName = this.id != null ? this.id : this.name!;
-    const data: Pokemon = await PokeNodePokemon.client.getPokemonByName(idOrName);
+    const data: Pokemon = await PokeNodePokemon.client.getPokemonByName(idOrName.toString());
 
     // update fields
     this.id = data.id;
@@ -68,20 +75,46 @@ export class PokeNodePokemon {
     for (const stat of data.stats) {
       this.baseStats[stat.stat.name] = stat.base_stat;
     }
+    this.dirty=true;
+    this.randomizeTTL()
   }
 
-  /**
-   * Example helper: get the primary type (if exists).
-   */
+  
   public getPrimaryType(): string | null {
     return this.types.length > 0 ? this.types[0] : null;
   }
 
-  /**
-   * Example helper: get total of all base stats.
-   */
+
+  public randomizeTTL(): void {
+    const min = 1000 * 60 * 60 * 12; // 12 hours
+    const max = 1000 * 60 * 60 * 24*7; // 24 hours (assumption is that updates are very slow)
+    this.TTL = Math.random() * (max - min) + min;
+    this.last_access = Date.now();
+  }
+
+
   public getTotalBaseStats(): number {
     return Object.values(this.baseStats).reduce((sum, val) => sum + val, 0);
+  }
+
+
+  public isExpired(): boolean {
+    return Date.now() - this.last_access > this.TTL;
+  }
+
+  public toJSON(): Record<string, any> {
+    return {
+      id: this.id,
+      name: this.name,
+      height: this.height,
+      weight: this.weight,
+      types: this.types,
+      abilities: this.abilities,
+      baseStats: this.baseStats,
+      last_access: this.last_access,
+      TTL: this.TTL,
+      dirty: this.dirty,
+    };
   }
 }
 
